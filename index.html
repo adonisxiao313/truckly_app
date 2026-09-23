@@ -1,0 +1,2089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#121916">
+<title>Fleet · Truckly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,560;0,9..144,620;1,9..144,500&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --canvas: #121916;
+    --rail: #0C1210;
+    --ribbon: #18211C;
+    --paper: #F3F0E8;
+    --paper-2: #E7E1D4;
+    --wash: #EAE3D6;
+    --ink: #1C2420;
+    --muted: #5C675F;
+    --line: #DDD6C8;
+    --line-dark: rgba(243, 240, 232, 0.12);
+    --amber: #E2A122;
+    --route: #2E6B4A;
+    --loading: #A56B12;
+    --yard: #3E534C;
+    --service: #B5522A;
+    --mist: #C5CDC6;
+    --mist-dim: #A8B2AA;
+    --sans: "Outfit", "Segoe UI", sans-serif;
+    --serif: "Fraunces", Georgia, serif;
+    --radius: 8px;
+    --shadow: 0 14px 34px rgba(8, 12, 10, 0.28);
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.18'/%3E%3C/svg%3E");
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  [hidden] { display: none !important; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--canvas);
+    color: var(--paper);
+    font-family: var(--sans);
+    font-size: 15.5px;
+    line-height: 1.45;
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button, input { font: inherit; color: inherit; }
+  button { background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+  h1, h2, h3, p, ul, ol, dl, dd { margin: 0; }
+
+  :focus { outline: none; }
+  :focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 2px;
+  }
+  .paper :focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 1px var(--ink);
+  }
+
+  ::selection { background: var(--amber); color: var(--ink); }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .skip {
+    position: absolute;
+    left: 12px;
+    top: -48px;
+    z-index: 20;
+    background: var(--amber);
+    color: var(--ink);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  .skip:focus { top: 12px; }
+
+  .shell {
+    display: flex;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
+
+  .rail {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    width: 188px;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    background: var(--rail);
+    border-right: 1px solid var(--line-dark);
+    box-shadow: inset 0 2px 0 var(--amber);
+    padding: 22px 14px 16px;
+    overflow: auto;
+  }
+
+  .wordmark {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 28px;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--paper);
+  }
+
+  .tagline {
+    margin-top: 7px;
+    color: var(--mist);
+    font-size: 12.5px;
+    line-height: 1.35;
+  }
+
+  .module {
+    margin: 18px 0 8px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line-dark);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--mist-dim);
+  }
+
+  .rail nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .rail nav button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    border-radius: 6px;
+    padding: 8px 8px;
+    color: var(--mist);
+    font-size: 15px;
+  }
+
+  .rail nav button::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    flex: none;
+    border: 1px solid rgba(243, 240, 232, 0.35);
+    border-radius: 1px;
+  }
+
+  .rail nav button:hover { background: rgba(243, 240, 232, 0.05); color: var(--paper); }
+
+  .rail nav button[aria-current="page"] {
+    background: rgba(243, 240, 232, 0.08);
+    color: var(--paper);
+  }
+
+  .rail nav button[aria-current="page"]::before {
+    background: var(--amber);
+    border-color: var(--amber);
+  }
+
+  .yard {
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid var(--line-dark);
+  }
+
+  .yard-kicker {
+    font-size: 13px;
+    color: var(--paper);
+    font-weight: 600;
+  }
+
+  .yard-place {
+    margin-top: 2px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: var(--mist-dim);
+  }
+
+  .yard-stats {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 4px;
+  }
+
+  .yard-stats li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--mist);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .yard-stats strong { color: var(--paper); font-weight: 600; }
+
+  .yard-bar {
+    display: flex;
+    height: 4px;
+    margin-top: 10px;
+    border-radius: 2px;
+    overflow: hidden;
+    background: rgba(243, 240, 232, 0.08);
+  }
+
+  .yard-bar span { display: block; height: 100%; }
+  .seg-yard { background: var(--yard); }
+  .seg-loading { background: var(--loading); }
+  .seg-service { background: var(--service); }
+  .seg-route { background: var(--route); }
+
+  .workspace {
+    flex: 1;
+    min-width: 0;
+    background:
+      radial-gradient(920px 260px at 40% 86px, rgba(226, 161, 34, 0.07), transparent 70%),
+      var(--canvas);
+  }
+
+  .topbar {
+    display: flex;
+    align-items: flex-end;
+    gap: 18px;
+    padding: 18px 18px 14px;
+  }
+
+  .topbar h1 {
+    font-family: var(--sans);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  .context {
+    margin-top: 3px;
+    color: var(--mist);
+    font-size: 14px;
+  }
+
+  .search {
+    margin-left: auto;
+    position: relative;
+    width: min(280px, 34vw);
+    display: flex;
+    align-items: center;
+  }
+
+  .search svg {
+    position: absolute;
+    left: 10px;
+    width: 15px;
+    height: 15px;
+    stroke: var(--mist-dim);
+    fill: none;
+    stroke-width: 1.6;
+    pointer-events: none;
+  }
+
+  .search input {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--line-dark);
+    border-radius: 6px;
+    padding: 8px 34px 8px 32px;
+    color: var(--paper);
+    font-size: 14.5px;
+  }
+
+  .search input::placeholder { color: rgba(243, 240, 232, 0.45); }
+
+  .search input::-webkit-search-cancel-button { -webkit-appearance: none; }
+
+  #clear-search {
+    position: absolute;
+    right: 4px;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    color: var(--mist);
+    font-size: 18px;
+    line-height: 1;
+    text-align: center;
+  }
+
+  #clear-search:hover { color: var(--paper); background: rgba(243, 240, 232, 0.06); }
+
+  .user {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.25;
+    padding-left: 14px;
+    border-left: 1px solid var(--line-dark);
+    min-width: 118px;
+  }
+
+  .user-name { font-size: 14px; font-weight: 600; }
+  .user-role { font-size: 12px; color: var(--mist-dim); }
+
+  main {
+    padding: 2px 18px 32px;
+  }
+
+  .view { display: flex; flex-direction: column; gap: 14px; }
+
+  .paper {
+    background-color: var(--paper);
+    background-image: var(--grain);
+    color: var(--ink);
+    color-scheme: light;
+    border-radius: var(--radius);
+  }
+
+  .ribbon {
+    background: var(--ribbon);
+    color: var(--paper);
+    border: 1px solid var(--line-dark);
+    border-radius: var(--radius);
+    color-scheme: dark;
+  }
+
+  .ribbon-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--line-dark);
+  }
+
+  .ribbon-head h2 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .ribbon-sub {
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--mist-dim);
+  }
+
+  .ribbon-now {
+    text-align: right;
+    font-size: 14px;
+    color: var(--mist);
+    max-width: min(520px, 54%);
+    line-height: 1.35;
+  }
+
+  .ribbon-now strong {
+    font-family: var(--serif);
+    font-weight: 560;
+    font-size: 17px;
+    color: var(--amber);
+    letter-spacing: -0.02em;
+  }
+
+  .ribbon-scroll { overflow-x: auto; }
+
+  .ribbon-body {
+    display: flex;
+    min-width: 720px;
+    min-height: 158px;
+  }
+
+  .yard-well {
+    width: 176px;
+    flex: none;
+    padding: 12px 12px 14px;
+    border-right: 1px solid var(--line-dark);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .yard-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mist-dim);
+  }
+
+  .yard-marks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-content: flex-start;
+  }
+
+  .yard-mark {
+    border: 1px solid rgba(226, 161, 34, 0.55);
+    border-radius: 4px;
+    color: var(--paper);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    padding: 5px 7px;
+    min-height: 32px;
+    text-align: center;
+  }
+
+  .yard-mark[data-status="service"] { border-color: var(--service); }
+  .yard-mark:hover { background: rgba(226, 161, 34, 0.12); }
+
+  .yard-mark.is-selected {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: var(--ink);
+  }
+
+  .corridor {
+    position: relative;
+    flex: 1;
+    min-width: 520px;
+    height: 158px;
+  }
+
+  .route-line {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    top: 86px;
+    height: 2px;
+    background: var(--amber);
+    transform-origin: left center;
+    animation: draw 0.7s ease both;
+  }
+
+  .focus-marker {
+    position: absolute;
+    top: 22px;
+    height: 64px;
+    width: 1px;
+    background: var(--amber);
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 1;
+    opacity: 1;
+  }
+
+  .corridor.is-ready .focus-marker {
+    transition: left 280ms ease, opacity 160ms ease;
+  }
+
+  .focus-marker.is-parked { opacity: 0; }
+
+  .focus-marker::before {
+    content: "";
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    width: 7px;
+    height: 7px;
+    background: var(--amber);
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  .stop {
+    position: absolute;
+    top: 82px;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .stop-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 2px solid var(--amber);
+    background: var(--ribbon);
+    box-sizing: border-box;
+  }
+
+  .stop-name {
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--mist);
+    white-space: nowrap;
+  }
+
+  .truck {
+    position: absolute;
+    z-index: 2;
+    top: 80px;
+    transform: translate(-50%, -100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    min-width: 52px;
+    min-height: 44px;
+    padding: 2px 2px 8px;
+    color: var(--mist);
+  }
+
+  .truck-id {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    background: var(--ribbon);
+    padding: 0 3px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .diamond {
+    width: 8px;
+    height: 8px;
+    background: var(--amber);
+    transform: rotate(45deg);
+  }
+
+  .truck:hover .truck-id { color: var(--paper); }
+  .truck:hover .diamond { transform: rotate(45deg) scale(1.15); }
+
+  .truck.is-selected .truck-id {
+    font-family: var(--serif);
+    font-weight: 560;
+    font-size: 14px;
+    color: var(--amber);
+  }
+
+  .truck.is-selected .diamond {
+    width: 12px;
+    height: 12px;
+    box-shadow: 0 0 0 4px rgba(226, 161, 34, 0.22);
+  }
+
+  .kpis {
+    display: grid;
+    grid-template-columns: 1.28fr 1fr 1fr 1fr 1fr;
+    overflow: hidden;
+  }
+
+  .kpi {
+    padding: 14px 16px 15px;
+    border-left: 1px solid var(--line);
+  }
+
+  .kpi-lead {
+    border-left: 0;
+    border-top: 2px solid var(--amber);
+  }
+
+  .kpi-num {
+    font-family: var(--serif);
+    font-weight: 560;
+    font-size: 30px;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+
+  .kpi-lead .kpi-num { font-size: 44px; }
+
+  .kpi-label {
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .board-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 14px;
+    align-items: start;
+  }
+
+  .board { container-type: inline-size; container-name: board; }
+
+  .board-tools {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px 12px 10px;
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    padding: 3px;
+    background: var(--paper-2);
+    border-radius: 8px;
+  }
+
+  .filters button {
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13.5px;
+    color: var(--ink);
+    text-align: center;
+  }
+
+  .filters button:hover { background: rgba(28, 36, 32, 0.06); }
+
+  .filters button[aria-pressed="true"] {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .filters .count {
+    margin-left: 4px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .filters button[aria-pressed="true"] .count { color: rgba(243, 240, 232, 0.72); }
+
+  .result-count {
+    font-size: 13px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .filter-note {
+    padding: 0 12px 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .filter-note button {
+    margin-left: 8px;
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    font-size: 13px;
+  }
+
+  .list-head,
+  .unit-row {
+    display: grid;
+    grid-template-columns: 72px 78px minmax(0, 1.05fr) minmax(0, 1.2fr) minmax(0, 1.05fr) 104px 84px;
+    gap: 8px;
+    align-items: center;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .list-head {
+    padding-top: 2px;
+    padding-bottom: 6px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .fleet-list { list-style: none; padding: 0; }
+
+  .unit-row {
+    width: 100%;
+    padding-top: 9px;
+    padding-bottom: 9px;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    color: var(--ink);
+    font-size: 15px;
+  }
+
+  .unit-row:hover { background: var(--wash); }
+
+  .unit-row.is-selected {
+    background: #E4DDD0;
+    box-shadow: inset 3px 0 0 var(--amber);
+  }
+
+  .unit-row.is-selected:hover { background: #DDD4C6; }
+
+  .unit-row.is-selected:focus-visible {
+    box-shadow: inset 3px 0 0 var(--amber), 0 0 0 1px var(--ink);
+  }
+
+  .cell {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cell-id { font-weight: 600; letter-spacing: 0.01em; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: none;
+    display: inline-block;
+  }
+
+  .dot.route { background: var(--route); }
+  .dot.loading { background: var(--loading); }
+  .dot.yard { background: var(--yard); }
+  .dot.service { background: var(--service); }
+
+  .empty {
+    padding: 28px 12px 32px;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+  }
+
+  .empty button {
+    margin-left: 6px;
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .detail {
+    position: sticky;
+    top: 12px;
+    max-height: calc(100vh - 24px);
+    overflow: auto;
+    box-shadow: var(--shadow);
+    padding: 16px 16px 14px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .kicker {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .detail-id {
+    font-family: var(--serif);
+    font-weight: 560;
+    font-size: 36px;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-top: 4px;
+    color: var(--ink);
+  }
+
+  .detail-type { margin-top: 6px; font-size: 15px; }
+
+  .detail-plate {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+
+  .detail-head .status { margin-top: 10px; }
+
+  .detail-block {
+    padding: 11px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .detail-block dt,
+  .detail h3 {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .detail-block dd {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .detail-primary { font-weight: 600; }
+
+  .sub { color: var(--muted); font-size: 13.5px; }
+
+  .log { list-style: none; padding: 0; }
+
+  .log li {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 8px;
+    padding: 7px 0;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+  }
+
+  .log time {
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    font-size: 12.5px;
+    padding-top: 2px;
+  }
+
+  .log li.is-new {
+    background: rgba(226, 161, 34, 0.18);
+    box-shadow: inset 2px 0 0 var(--amber);
+    padding-left: 8px;
+    padding-right: 4px;
+  }
+
+  .detail-foot {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    padding-top: 10px;
+    background-color: var(--paper);
+    background-image: var(--grain);
+  }
+
+  .checkin {
+    width: 100%;
+    text-align: center;
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+
+  .checkin:hover { background: #2A3832; }
+  .checkin:active { background: #101614; }
+
+  .sheet { padding: 18px 18px 8px; }
+
+  .lede {
+    max-width: 68ch;
+    color: var(--muted);
+    font-size: 15px;
+  }
+
+  .sheet-label {
+    margin: 16px 0 0;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .ledger { list-style: none; padding: 0; margin-top: 6px; }
+
+  .ledger button,
+  .ledger .static-row {
+    width: 100%;
+    display: grid;
+    gap: 8px 14px;
+    align-items: baseline;
+    padding: 11px 4px;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    color: var(--ink);
+    font-size: 14.5px;
+  }
+
+  .ledger button:hover { background: var(--wash); }
+
+  .drivers-row { grid-template-columns: minmax(0, 1.3fr) 78px 110px minmax(0, 1fr) 132px; }
+  .maint-row { grid-template-columns: 78px minmax(0, 1.1fr) 110px minmax(0, 1.5fr); }
+  .account-row { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1.3fr); }
+  .report-row { grid-template-columns: minmax(0, 1.2fr) minmax(0, 2fr); }
+
+  .who { font-weight: 600; }
+  .kind { display: block; color: var(--muted); font-size: 13px; font-weight: 400; margin-top: 1px; }
+
+  .report-hero {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+    gap: 8px 28px;
+    align-items: end;
+    padding-bottom: 8px;
+    border-top: 2px solid var(--amber);
+    padding-top: 14px;
+    margin-top: 14px;
+  }
+
+  .report-figure {
+    font-family: var(--serif);
+    font-weight: 560;
+    font-size: 72px;
+    letter-spacing: -0.04em;
+    line-height: 0.85;
+    color: var(--ink);
+  }
+
+  .report-caption { color: var(--muted); font-size: 14.5px; max-width: 36ch; }
+
+  .stations { list-style: none; padding: 8px 0 12px; margin-top: 8px; }
+
+  .stations li {
+    position: relative;
+    padding: 0 0 18px 22px;
+    border-left: 2px solid var(--amber);
+  }
+
+  .stations li:last-child { border-left-color: transparent; padding-bottom: 4px; }
+
+  .stations li::before {
+    content: "";
+    position: absolute;
+    left: -6px;
+    top: 3px;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--amber);
+    background: var(--paper);
+    border-radius: 50%;
+    box-sizing: border-box;
+  }
+
+  .stations h3 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .station-note { color: var(--muted); font-size: 14px; margin-top: 2px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    background: transparent;
+  }
+
+  .chip:hover { background: var(--wash); }
+  .chip .sub { font-weight: 400; }
+
+  .closing {
+    margin: 4px 0 12px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .boot { color: var(--mist-dim); padding: 16px; }
+
+  @container board (max-width: 760px) {
+    .col-lane { display: none; }
+    .list-head,
+    .unit-row {
+      grid-template-columns: 72px 78px minmax(0, 1fr) minmax(0, 1.15fr) 104px 84px;
+    }
+  }
+
+  @container board (max-width: 600px) {
+    .col-type { display: none; }
+    .list-head,
+    .unit-row {
+      grid-template-columns: 72px minmax(0, 1fr) minmax(0, 1.15fr) 100px 80px;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .board-wrap { grid-template-columns: minmax(0, 1fr); }
+    .detail {
+      position: static;
+      max-height: none;
+      overflow: visible;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .shell { display: block; }
+
+    .rail {
+      position: static;
+      width: 100%;
+      height: auto;
+      overflow: visible;
+      border-right: 0;
+      border-bottom: 1px solid var(--line-dark);
+      padding: 14px 14px 12px;
+    }
+
+    .rail-brand {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .module {
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .tagline { display: none; }
+
+    .rail nav {
+      flex-direction: row;
+      overflow-x: auto;
+      margin-top: 12px;
+      gap: 4px;
+      padding-bottom: 2px;
+    }
+
+    .rail nav button { width: auto; white-space: nowrap; }
+
+    .yard { margin-top: 12px; }
+    .yard-place { display: none; }
+    .yard-stats {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .yard-stats li { display: block; }
+    .yard-stats strong { display: block; font-family: var(--serif); font-size: 18px; font-weight: 560; }
+
+    .topbar { flex-wrap: wrap; align-items: flex-start; gap: 10px 14px; }
+    .search { width: 100%; margin-left: 0; order: 3; }
+
+    .kpis { grid-template-columns: 1fr 1fr; }
+    .kpi { border-left: 0; border-top: 1px solid var(--line); }
+    .kpi-lead { grid-column: 1 / -1; border-top: 2px solid var(--amber); }
+    .kpi:nth-child(odd):not(.kpi-lead) { border-left: 1px solid var(--line); }
+
+    .ribbon-now { max-width: none; text-align: left; }
+    .ribbon-head { flex-direction: column; align-items: flex-start; }
+
+    .drivers-row { grid-template-columns: minmax(0, 1fr) 72px 100px; }
+    .maint-row { grid-template-columns: 72px minmax(0, 1fr); }
+    .account-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .col-phone, .col-hours, .col-note, .col-work { display: none; }
+
+    .report-hero { grid-template-columns: 1fr; }
+    .report-figure { font-size: 60px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+
+  @keyframes draw {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .ribbon { animation: rise 0.45s ease both; }
+  .kpis { animation: rise 0.45s ease 0.06s both; }
+  .board-wrap { animation: rise 0.45s ease 0.12s both; }
+</style>
+</head>
+<body>
+<a class="skip" href="#fleet-board">Skip to fleet list</a>
+<div class="shell">
+  <aside class="rail">
+    <div class="rail-brand">
+      <div>
+        <p class="wordmark">Truckly</p>
+        <p class="tagline">Fleet, inside the CRM.</p>
+      </div>
+      <p class="module">CRM · Fleet</p>
+    </div>
+    <nav aria-label="Modules">
+      <button type="button" data-view="fleet" aria-current="page">Fleet</button>
+      <button type="button" data-view="drivers">Drivers</button>
+      <button type="button" data-view="maintenance">Maintenance</button>
+      <button type="button" data-view="accounts">Accounts</button>
+      <button type="button" data-view="routes">Routes</button>
+      <button type="button" data-view="reports">Reports</button>
+    </nav>
+    <div class="yard" id="yard" aria-label="Yard status"></div>
+  </aside>
+
+  <div class="workspace">
+    <header class="topbar">
+      <div>
+        <h1 id="page-title">Fleet</h1>
+        <p class="context" id="page-context">Wednesday dispatch · North corridor</p>
+      </div>
+      <form class="search" role="search">
+        <label class="sr-only" for="q">Search fleet by unit, driver, account, or lane</label>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.2"/><path d="M10.2 10.2 L13.2 13.2"/></svg>
+        <input id="q" type="search" placeholder="Unit, driver, account, lane" autocomplete="off" spellcheck="false">
+        <button type="button" id="clear-search" data-action="clear" aria-label="Clear search" hidden>×</button>
+      </form>
+      <div class="user">
+        <span class="user-name">Naomi Ellison</span>
+        <span class="user-role">Night dispatch</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="view" id="view-fleet" data-view-panel="fleet">
+        <section class="ribbon" id="ribbon" aria-label="North corridor">
+          <p class="boot">North corridor</p>
+        </section>
+        <section class="kpis paper" id="kpis" aria-label="Fleet summary"></section>
+        <div class="board-wrap">
+          <section class="board paper" id="fleet-board" tabindex="-1" aria-label="Fleet board">
+            <div class="board-tools">
+              <div class="filters" role="group" aria-label="Filter by status">
+                <button type="button" data-filter="all" aria-pressed="true">All <span class="count" data-count="all"></span></button>
+                <button type="button" data-filter="route" aria-pressed="false">On route <span class="count" data-count="route"></span></button>
+                <button type="button" data-filter="loading" aria-pressed="false">Loading <span class="count" data-count="loading"></span></button>
+                <button type="button" data-filter="yard" aria-pressed="false">In yard <span class="count" data-count="yard"></span></button>
+                <button type="button" data-filter="service" aria-pressed="false">Service <span class="count" data-count="service"></span></button>
+              </div>
+              <p class="result-count" id="result-count"></p>
+            </div>
+            <p class="filter-note" id="filter-note" hidden>
+              <span id="filter-note-text"></span>
+              <button type="button" data-action="show-selected">Show this unit</button>
+            </p>
+            <div class="list-head" id="list-head" aria-hidden="true">
+              <span>Unit</span>
+              <span class="col-type">Type</span>
+              <span>Driver</span>
+              <span>Account</span>
+              <span class="col-lane">Lane</span>
+              <span>Status</span>
+              <span>ETA</span>
+            </div>
+            <ul class="fleet-list" id="list"></ul>
+          </section>
+          <aside class="detail paper" id="detail"></aside>
+        </div>
+      </section>
+
+      <section class="view" id="view-drivers" data-view-panel="drivers" hidden></section>
+      <section class="view" id="view-maintenance" data-view-panel="maintenance" hidden></section>
+      <section class="view" id="view-accounts" data-view-panel="accounts" hidden></section>
+      <section class="view" id="view-routes" data-view-panel="routes" hidden></section>
+      <section class="view" id="view-reports" data-view-panel="reports" hidden></section>
+    </main>
+  </div>
+</div>
+<p id="live" class="sr-only" aria-live="polite"></p>
+<noscript><p class="boot">Truckly Fleet needs JavaScript to show this board.</p></noscript>
+
+<script>
+(() => {
+  const units = [
+    {
+      id: "HP-184",
+      type: "Reefer",
+      typeNote: "Reefer · 34°F",
+      plate: "8YTN441",
+      driver: "Marisol Vega",
+      hours: "6.4 h on duty",
+      hoursLimit: "11 h limit",
+      phone: "(510) 418-2290",
+      account: "Valley Grove Co-op",
+      contact: "Dana Okonkwo",
+      contactRole: "Buyer",
+      load: "Mixed produce · 18 pallets",
+      lane: "Oakland → Stockton",
+      status: "route",
+      eta: "ETA 07:40",
+      etaShort: "07:40",
+      next: "Stockton dock 2",
+      progress: 0.18,
+      ping: "06:31 · I-580, 22 mi out",
+      maintenance: "Oil service · 1,240 mi remaining",
+      log: [
+        { t: "04:58", text: "Pre-trip signed, reefer set to 34°F" },
+        { t: "05:12", text: "Departed Oakland yard, dock 3" },
+        { t: "06:31", text: "Ping · east of Livermore" }
+      ]
+    },
+    {
+      id: "HP-312",
+      type: "Tractor",
+      typeNote: "Tractor · sleeper",
+      plate: "4HMB776",
+      driver: "Caleb Ortiz",
+      hours: "5.2 h on duty",
+      hoursLimit: "11 h limit",
+      phone: "(510) 672-4408",
+      account: "Redwood Building Supply",
+      contact: "June Harada",
+      contactRole: "Dispatch",
+      load: "Lumber and drywall · 16 pallets",
+      lane: "Oakland → Fresno",
+      status: "route",
+      eta: "ETA 10:20",
+      etaShort: "10:20",
+      next: "Fresno yard, gate B",
+      progress: 0.38,
+      ping: "06:34 · west of Stockton",
+      maintenance: "Brake inspection · 2,100 mi remaining",
+      log: [
+        { t: "04:20", text: "Loaded at Oakland, dock 6" },
+        { t: "04:46", text: "Departed Oakland yard" },
+        { t: "06:34", text: "Ping · approaching Stockton" }
+      ]
+    },
+    {
+      id: "HP-207",
+      type: "Tractor",
+      typeNote: "Tractor · day cab",
+      plate: "7KRP902",
+      driver: "Andre Pell",
+      hours: "4.1 h on duty",
+      hoursLimit: "11 h limit",
+      phone: "(209) 473-8816",
+      account: "Sierra Malt Co.",
+      contact: "Owen Blake",
+      contactRole: "Shipping",
+      load: "Kegs and malt · 12 pallets",
+      lane: "Stockton → Fresno",
+      status: "route",
+      eta: "ETA 09:15",
+      etaShort: "09:15",
+      next: "Fresno taproom dock",
+      progress: 0.5,
+      ping: "06:28 · CA-99 south of Manteca",
+      maintenance: "Tire rotation · 800 mi remaining",
+      log: [
+        { t: "03:40", text: "Hooked at Stockton cross-dock" },
+        { t: "04:05", text: "Departed Stockton eastbound" },
+        { t: "06:28", text: "Ping · south of Manteca" }
+      ]
+    },
+    {
+      id: "HP-419",
+      type: "Reefer",
+      typeNote: "Reefer · 36°F",
+      plate: "2CPT550",
+      driver: "Elena Brooks",
+      hours: "3.0 h on duty",
+      hoursLimit: "11 h limit",
+      phone: "(209) 334-6720",
+      account: "Valley Grove Co-op",
+      contact: "Dana Okonkwo",
+      contactRole: "Buyer",
+      load: "Dairy and cooler · 14 pallets",
+      lane: "Stockton → Bakersfield",
+      status: "route",
+      eta: "ETA 13:40",
+      etaShort: "13:40",
+      next: "Through Fresno, no drop",
+      progress: 0.62,
+      ping: "06:19 · south of Modesto",
+      maintenance: "Reefer PM · 400 mi remaining",
+      log: [
+        { t: "04:50", text: "Box pre-cooled to 36°F" },
+        { t: "05:05", text: "Departed Stockton" },
+        { t: "06:19", text: "Ping · south of Modesto" }
+      ]
+    },
+    {
+      id: "HP-091",
+      type: "Reefer",
+      typeNote: "Reefer · 34°F",
+      plate: "9DLW318",
+      driver: "Linh Tran",
+      hours: "7.8 h on duty",
+      hoursLimit: "11 h limit",
+      phone: "(559) 264-9033",
+      account: "Coldline Produce",
+      contact: "Hector Salas",
+      contactRole: "Logistics",
+      load: "Mixed greens · 22 pallets",
+      lane: "Fresno → Bakersfield",
+      status: "route",
+      eta: "ETA 11:05",
+      etaShort: "11:05",
+      next: "Bakersfield cold dock",
+      progress: 0.8,
+      ping: "06:22 · CA-99 near Tulare",
+      maintenance: "Temp sensor · watch on Friday",
+      log: [
+        { t: "01:15", text: "Departed Fresno cold storage" },
+        { t: "04:02", text: "Fuel stop at Tulare" },
+        { t: "06:22", text: "Ping · holding 34°F" }
+      ]
+    },
+    {
+      id: "HP-156",
+      type: "Straight",
+      typeNote: "Straight truck",
+      plate: "5SWN204",
+      driver: "Priya Shah",
+      hours: "1.2 h on duty",
+      hoursLimit: "11 h limit",
+      phone: "(510) 290-7741",
+      account: "Valley Grove Co-op",
+      contact: "Dana Okonkwo",
+      contactRole: "Buyer",
+      load: "Store drops · 6 pallets",
+      lane: "Oakland yard · dock 4",
+      status: "loading",
+      eta: "Depart 07:10",
+      etaShort: "07:10",
+      next: "Seal and depart",
+      progress: 0,
+      ping: "06:36 · dock 4",
+      maintenance: "No shop work scheduled",
+      log: [
+        { t: "05:50", text: "Arrived Oakland, dock 4" },
+        { t: "06:10", text: "Loading produce totes" },
+        { t: "06:36", text: "Two pallets still on the dock" }
+      ]
+    },
+    {
+      id: "HP-260",
+      type: "Straight",
+      typeNote: "Straight truck",
+      plate: "6RQA881",
+      driver: "Mateo Ruiz",
+      hours: "0.8 h on duty",
+      hoursLimit: "11 h limit",
+      phone: "(510) 814-3390",
+      account: "Sierra Malt Co.",
+      contact: "Owen Blake",
+      contactRole: "Shipping",
+      load: "Keg return · 9 pallets",
+      lane: "Oakland yard · dock 1",
+      status: "loading",
+      eta: "Depart 08:00",
+      etaShort: "08:00",
+      next: "Seal and depart",
+      progress: 0,
+      ping: "06:33 · dock 1",
+      maintenance: "No shop work scheduled",
+      log: [
+        { t: "05:40", text: "Backed into dock 1" },
+        { t: "06:05", text: "Keg count started" },
+        { t: "06:33", text: "Half loaded, waiting on the tally" }
+      ]
+    },
+    {
+      id: "HP-228",
+      type: "Reefer",
+      typeNote: "Reefer · pre-cool",
+      plate: "1VHD937",
+      driver: "Noah Kim",
+      hours: "0.4 h on duty",
+      hoursLimit: "11 h limit",
+      phone: "(510) 733-9055",
+      account: "Coldline Produce",
+      contact: "Hector Salas",
+      contactRole: "Logistics",
+      load: "Empty · trailer T-88 pre-cooling",
+      lane: "Oakland yard · row A",
+      status: "yard",
+      eta: "Hook 07:30",
+      etaShort: "07:30",
+      next: "Hook trailer T-88",
+      progress: 0,
+      ping: "06:25 · row A",
+      maintenance: "Reefer PM · Thursday",
+      log: [
+        { t: "04:50", text: "Pre-cool started, target 34°F" },
+        { t: "06:02", text: "Box at 38°F" },
+        { t: "06:25", text: "Box at 36°F, still pulling down" }
+      ]
+    },
+    {
+      id: "HP-044",
+      type: "Tractor",
+      typeNote: "Tractor · day cab",
+      plate: "3MKT612",
+      driver: "Rosa Delgado",
+      hours: "On call",
+      hoursLimit: "Not on the clock",
+      phone: "(510) 447-1288",
+      account: "Sierra Malt Co.",
+      contact: "Owen Blake",
+      contactRole: "Shipping",
+      load: "Empty · hook set for 09:30",
+      lane: "Oakland yard · row C",
+      status: "yard",
+      eta: "Pre-trip 08:45",
+      etaShort: "08:45",
+      next: "Pre-trip",
+      progress: 0,
+      ping: "06:10 · row C",
+      maintenance: "DOT inspection · Friday",
+      log: [
+        { t: "22:40", text: "Parked on row C" },
+        { t: "05:15", text: "Yard check, no defects noted" },
+        { t: "06:10", text: "Holding for the 09:30 hook" }
+      ]
+    },
+    {
+      id: "HP-073",
+      type: "Tractor",
+      typeNote: "Tractor · sleeper",
+      plate: "8BFL159",
+      driver: "James Whitaker",
+      hours: "Grounded",
+      hoursLimit: "Shop, not on duty",
+      phone: "(510) 622-0184",
+      account: "Redwood Building Supply",
+      contact: "June Harada",
+      contactRole: "Dispatch",
+      load: "Grounded · load moved to HP-312",
+      lane: "Oakland shop · bay 2",
+      status: "service",
+      eta: "Release Thu 14:00",
+      etaShort: "Thu 14:00",
+      next: "Brake inspection",
+      progress: 0,
+      ping: "06:02 · bay 2",
+      maintenance: "Front brakes · in bay 2 now",
+      log: [
+        { t: "Mon 16:10", text: "Pulled in for brake noise" },
+        { t: "Tue 09:40", text: "Parts arrived from Sacramento" },
+        { t: "06:02", text: "Bay 2, inspection underway" }
+      ]
+    }
+  ];
+
+  const accounts = [
+    { name: "Valley Grove Co-op", kind: "Grocery co-op", contact: "Dana Okonkwo", role: "Buyer", work: "Weekly replenishment · four store drops" },
+    { name: "Coldline Produce", kind: "Cold-chain produce", contact: "Hector Salas", role: "Logistics", work: "Greens contract · 34°F continuous" },
+    { name: "Redwood Building Supply", kind: "Building materials", contact: "June Harada", role: "Dispatch", work: "Lumber and drywall lanes to Fresno" },
+    { name: "Sierra Malt Co.", kind: "Regional brewery", contact: "Owen Blake", role: "Shipping", work: "Kegs, malt, and empty returns" }
+  ];
+
+  const maintenance = [
+    { id: "HP-073", item: "Front brakes", when: "In bay 2", note: "Parts in from Sacramento. Load moved to HP-312.", tone: "service", due: true },
+    { id: "HP-228", item: "Reefer PM", when: "Thursday", note: "Pre-cool running on trailer T-88.", tone: "loading", due: true },
+    { id: "HP-044", item: "DOT inspection", when: "Friday", note: "Row C. Hook at 09:30 if it clears.", tone: "loading", due: true },
+    { id: "HP-091", item: "Temp sensor", when: "Watch Friday", note: "Alarm cleared Tuesday. Still holding 34°F.", tone: "yard", due: false },
+    { id: "HP-419", item: "Reefer PM", when: "400 mi", note: "Schedule after this turn.", tone: "yard", due: false },
+    { id: "HP-184", item: "Oil service", when: "1,240 mi", note: "Not due this week.", tone: "yard", due: false }
+  ];
+
+  const stops = [
+    { name: "Oakland yard", at: 0 },
+    { name: "Stockton", at: 0.34 },
+    { name: "Fresno", at: 0.67 },
+    { name: "Bakersfield", at: 1 }
+  ];
+
+  const yardOrder = ["HP-260", "HP-156", "HP-228", "HP-044", "HP-073"];
+
+  const statusMeta = {
+    route: { label: "On route" },
+    loading: { label: "Loading" },
+    yard: { label: "In yard" },
+    service: { label: "Service" }
+  };
+
+  const statusRank = { route: 0, loading: 1, yard: 2, service: 3 };
+
+  const viewMeta = {
+    fleet: { title: "Fleet", context: "Wednesday dispatch · North corridor" },
+    drivers: { title: "Drivers", context: "Harbor & Pine · Wednesday board" },
+    maintenance: { title: "Maintenance", context: "Oakland shop · bay 2 occupied" },
+    accounts: { title: "Accounts", context: "Four accounts on the north corridor" },
+    routes: { title: "Routes", context: "Oakland yard eastbound to Bakersfield" },
+    reports: { title: "Reports", context: "Week of 21 Sep · through Wednesday" }
+  };
+
+  const state = { view: "fleet", filter: "all", query: "", selectedId: "HP-184" };
+
+  const input = document.getElementById("q");
+  const clearBtn = document.getElementById("clear-search");
+  const listEl = document.getElementById("list");
+  const detailEl = document.getElementById("detail");
+  const liveEl = document.getElementById("live");
+
+  function esc(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function leftPct(progress) {
+    return (10 + progress * 80).toFixed(2);
+  }
+
+  function getSelected() {
+    return units.find((unit) => unit.id === state.selectedId) || units[0];
+  }
+
+  function countStatus(status) {
+    if (status === "all") return units.length;
+    return units.filter((unit) => unit.status === status).length;
+  }
+
+  function visibleUnits() {
+    const query = state.query.trim().toLowerCase();
+    return units
+      .filter((unit) => {
+        if (state.filter !== "all" && unit.status !== state.filter) return false;
+        if (!query) return true;
+        const hay = [unit.id, unit.driver, unit.account, unit.lane].join(" ").toLowerCase();
+        return hay.includes(query);
+      })
+      .sort((a, b) => {
+        const rank = statusRank[a.status] - statusRank[b.status];
+        if (rank) return rank;
+        if (a.status === "route") return a.progress - b.progress;
+        return a.etaShort.localeCompare(b.etaShort);
+      });
+  }
+
+  function statusHtml(status) {
+    return `<span class="status"><span class="dot ${status}" aria-hidden="true"></span>${esc(statusMeta[status].label)}</span>`;
+  }
+
+  function announce(message) {
+    liveEl.textContent = "";
+    requestAnimationFrame(() => { liveEl.textContent = message; });
+  }
+
+  function nowStamp() {
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  }
+
+  function renderYard() {
+    const idle = countStatus("yard");
+    const dock = countStatus("loading");
+    const shop = countStatus("service");
+    const out = countStatus("route");
+    const total = units.length;
+    document.getElementById("yard").innerHTML = `
+      <p class="yard-kicker">Harbor &amp; Pine</p>
+      <p class="yard-place">Oakland yard</p>
+      <ul class="yard-stats">
+        <li><span>Idle</span><strong>${idle}</strong></li>
+        <li><span>Dock</span><strong>${dock}</strong></li>
+        <li><span>Shop</span><strong>${shop}</strong></li>
+        <li><span>Out</span><strong>${out}</strong></li>
+      </ul>
+      <div class="yard-bar" aria-hidden="true">
+        <span class="seg-yard" style="width:${(idle / total) * 100}%"></span>
+        <span class="seg-loading" style="width:${(dock / total) * 100}%"></span>
+        <span class="seg-service" style="width:${(shop / total) * 100}%"></span>
+        <span class="seg-route" style="width:${(out / total) * 100}%"></span>
+      </div>`;
+  }
+
+  function renderKpis() {
+    const figures = [
+      { value: String(units.length), label: "Active units", lead: true, note: "Units on the Wednesday board." },
+      { value: String(countStatus("route")), label: "On route", note: "Moving on the north corridor." },
+      { value: String(countStatus("yard")), label: "In yard", note: "Idle at Oakland, not on a dock." },
+      { value: "3", label: "Service due", note: "HP-073 in bay 2, HP-228 Thursday, HP-044 Friday." },
+      { value: "94%", label: "On-time this week", note: "47 of 50 drops, week of 21 September." }
+    ];
+    document.getElementById("kpis").innerHTML = figures.map((fig) => `
+      <div class="kpi${fig.lead ? " kpi-lead" : ""}">
+        <div class="kpi-num">${esc(fig.value)}</div>
+        <div class="kpi-label">${esc(fig.label)}</div>
+        <span class="sr-only">${esc(fig.note)}</span>
+      </div>`).join("");
+  }
+
+  function renderRibbon() {
+    const yardMarks = yardOrder.map((id) => units.find((unit) => unit.id === id));
+    const road = units.filter((unit) => unit.status === "route").sort((a, b) => a.progress - b.progress);
+    const selected = getSelected();
+    const markerLeft = selected.status === "route" ? leftPct(selected.progress) : "10";
+
+    document.getElementById("ribbon").innerHTML = `
+      <div class="ribbon-head">
+        <div>
+          <h2>North corridor</h2>
+          <p class="ribbon-sub">Wednesday 23 Sep · eastbound · board opened 06:41</p>
+        </div>
+        <p class="ribbon-now" id="ribbon-now"></p>
+      </div>
+      <div class="ribbon-scroll">
+        <div class="ribbon-body">
+          <div class="yard-well">
+            <p class="yard-label">At the yard</p>
+            <div class="yard-marks">
+              ${yardMarks.map((unit) => `
+                <button type="button" class="yard-mark" data-select="${esc(unit.id)}" data-status="${esc(unit.status)}" aria-pressed="false" aria-label="Select ${esc(unit.id)}, ${esc(unit.driver)}, ${esc(statusMeta[unit.status].label)}">${esc(unit.id)}</button>
+              `).join("")}
+            </div>
+          </div>
+          <div class="corridor" id="corridor">
+            <div class="focus-marker${selected.status === "route" ? "" : " is-parked"}" id="focus-marker" style="left:${markerLeft}%" aria-hidden="true"></div>
+            <div class="route-line"></div>
+            ${stops.map((stop) => `
+              <div class="stop" style="left:${leftPct(stop.at)}%">
+                <span class="stop-dot"></span>
+                <span class="stop-name">${esc(stop.name)}</span>
+              </div>`).join("")}
+            ${road.map((unit) => `
+              <button type="button" class="truck" data-select="${esc(unit.id)}" style="left:${leftPct(unit.progress)}%" aria-pressed="false" aria-label="Select ${esc(unit.id)}, ${esc(unit.driver)}, ${esc(statusMeta[unit.status].label)}, ${esc(unit.lane)}">
+                <span class="truck-id">${esc(unit.id)}</span>
+                <span class="diamond" aria-hidden="true"></span>
+              </button>`).join("")}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderList() {
+    const rows = visibleUnits();
+    const total = units.length;
+    const count = document.getElementById("result-count");
+    count.textContent = rows.length === total ? `${total} units` : `${rows.length} of ${total}`;
+    document.getElementById("list-head").hidden = rows.length === 0;
+
+    if (!rows.length) {
+      const bits = [];
+      if (state.filter !== "all") bits.push(statusMeta[state.filter].label);
+      if (state.query.trim()) bits.push(`“${state.query.trim()}”`);
+      const msg = bits.length ? `No units match ${bits.join(" · ")}.` : "No units on the board.";
+      listEl.innerHTML = `<li class="empty">${esc(msg)} <button type="button" data-action="clear">Clear search</button></li>`;
+      return;
+    }
+
+    listEl.innerHTML = rows.map((unit) => `
+      <li>
+        <button type="button" class="unit-row" data-select="${esc(unit.id)}" aria-pressed="false" aria-label="${esc(unit.id)}, ${esc(unit.typeNote)}, driver ${esc(unit.driver)}, account ${esc(unit.account)}, lane ${esc(unit.lane)}, ${esc(statusMeta[unit.status].label)}, ${esc(unit.eta)}">
+          <span class="cell cell-id">${esc(unit.id)}</span>
+          <span class="cell col-type">${esc(unit.type)}</span>
+          <span class="cell">${esc(unit.driver)}</span>
+          <span class="cell">${esc(unit.account)}</span>
+          <span class="cell col-lane">${esc(unit.lane)}</span>
+          <span class="cell">${statusHtml(unit.status)}</span>
+          <span class="cell num">${esc(unit.etaShort)}</span>
+        </button>
+      </li>`).join("");
+  }
+
+  function renderDetail() {
+    const unit = getSelected();
+    detailEl.setAttribute("aria-label", `Selected unit ${unit.id}`);
+    detailEl.innerHTML = `
+      <div class="detail-body">
+        <header class="detail-head">
+          <p class="kicker">Selected unit</p>
+          <h2 class="detail-id">${esc(unit.id)}</h2>
+          <p class="detail-type">${esc(unit.typeNote)}</p>
+          <p class="detail-plate">Plate ${esc(unit.plate)}</p>
+          ${statusHtml(unit.status)}
+        </header>
+        <dl>
+          <div class="detail-block">
+            <dt>Driver</dt>
+            <dd>
+              <span class="detail-primary">${esc(unit.driver)}</span>
+              <span class="sub">${esc(unit.hours)} · ${esc(unit.hoursLimit)}</span>
+              <span class="sub">${esc(unit.phone)}</span>
+            </dd>
+          </div>
+          <div class="detail-block">
+            <dt>Account</dt>
+            <dd>
+              <span class="detail-primary">${esc(unit.account)}</span>
+              <span class="sub">${esc(unit.contact)} · ${esc(unit.contactRole)}</span>
+              <span class="sub">${esc(unit.load)}</span>
+            </dd>
+          </div>
+          <div class="detail-block">
+            <dt>Lane</dt>
+            <dd>
+              <span class="detail-primary">${esc(unit.lane)}</span>
+              <span class="sub">Last ping ${esc(unit.ping)}</span>
+              <span class="sub">${esc(unit.eta)} · ${esc(unit.next)}</span>
+            </dd>
+          </div>
+          <div class="detail-block">
+            <dt>Next maintenance</dt>
+            <dd><span class="detail-primary">${esc(unit.maintenance)}</span></dd>
+          </div>
+        </dl>
+        <section class="detail-block" aria-label="Activity">
+          <h3>Activity</h3>
+          <ol class="log">
+            ${unit.log.map((entry) => `
+              <li class="${entry.fresh ? "is-new" : ""}">
+                <time datetime="${esc(entry.t)}">${esc(entry.t)}</time>
+                <span>${esc(entry.text)}</span>
+              </li>`).join("")}
+          </ol>
+        </section>
+      </div>
+      <div class="detail-foot">
+        <button type="button" class="checkin" data-action="checkin">Log check-in</button>
+      </div>`;
+  }
+
+  function updateSelection() {
+    const unit = getSelected();
+    document.querySelectorAll("[data-select]").forEach((el) => {
+      const on = el.dataset.select === unit.id;
+      el.classList.toggle("is-selected", on);
+      el.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+
+    const marker = document.getElementById("focus-marker");
+    if (marker) {
+      if (unit.status === "route") {
+        marker.classList.remove("is-parked");
+        marker.style.left = `${leftPct(unit.progress)}%`;
+      } else {
+        marker.classList.add("is-parked");
+      }
+    }
+
+    const caption = document.getElementById("ribbon-now");
+    if (caption) {
+      caption.innerHTML = `<strong>${esc(unit.id)}</strong> · ${esc(unit.driver)} · ${esc(unit.lane)} · ${esc(unit.etaShort)}`;
+    }
+
+    const visible = visibleUnits();
+    const note = document.getElementById("filter-note");
+    const shown = visible.some((item) => item.id === unit.id);
+    note.hidden = shown;
+    if (!shown) {
+      document.getElementById("filter-note-text").textContent = `${unit.id} is outside this filter.`;
+    }
+  }
+
+  function syncFilters() {
+    document.querySelectorAll("[data-filter]").forEach((btn) => {
+      btn.setAttribute("aria-pressed", btn.dataset.filter === state.filter ? "true" : "false");
+    });
+  }
+
+  function setFilter(filter) {
+    state.filter = filter;
+    syncFilters();
+    renderList();
+    updateSelection();
+  }
+
+  function select(id, fromUser) {
+    const unit = units.find((item) => item.id === id);
+    if (!unit) return;
+    const changed = state.selectedId !== id;
+    state.selectedId = id;
+    updateSelection();
+    if (changed) renderDetail();
+    if (fromUser && changed) {
+      announce(`Selected ${unit.id}, ${unit.driver}, ${statusMeta[unit.status].label}.`);
+    }
+  }
+
+  function setView(view) {
+    if (!viewMeta[view]) return;
+    state.view = view;
+    document.querySelectorAll(".rail nav button").forEach((btn) => {
+      if (btn.dataset.view === view) btn.setAttribute("aria-current", "page");
+      else btn.removeAttribute("aria-current");
+    });
+    document.querySelectorAll("[data-view-panel]").forEach((panel) => {
+      panel.hidden = panel.dataset.viewPanel !== view;
+    });
+    document.getElementById("page-title").textContent = viewMeta[view].title;
+    document.getElementById("page-context").textContent = viewMeta[view].context;
+    document.title = `${viewMeta[view].title} · Truckly`;
+  }
+
+  function clearSearch() {
+    state.query = "";
+    input.value = "";
+    clearBtn.hidden = true;
+    renderList();
+    updateSelection();
+    input.focus();
+  }
+
+  function showSelected() {
+    state.filter = "all";
+    state.query = "";
+    input.value = "";
+    clearBtn.hidden = true;
+    syncFilters();
+    setView("fleet");
+    renderList();
+    updateSelection();
+  }
+
+  function logCheckin() {
+    const unit = getSelected();
+    unit.log.forEach((entry) => { entry.fresh = false; });
+    const stamp = nowStamp();
+    unit.log.push({ t: stamp, text: "Check-in logged by Naomi Ellison", fresh: true });
+    renderDetail();
+    const button = detailEl.querySelector("[data-action='checkin']");
+    if (button) button.focus();
+    const fresh = detailEl.querySelector(".is-new");
+    if (fresh) {
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      fresh.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+    }
+    announce(`Check-in logged for ${unit.id} at ${stamp}.`);
+  }
+
+  function chip(unit) {
+    return `<button type="button" class="chip" data-select="${esc(unit.id)}" data-jump="fleet">${esc(unit.id)} <span class="sub">${esc(statusMeta[unit.status].label)}</span></button>`;
+  }
+
+  function renderSecondary() {
+    const driverRows = [...units].sort((a, b) => a.driver.localeCompare(b.driver)).map((unit) => `
+      <li>
+        <button type="button" class="drivers-row" data-select="${esc(unit.id)}" data-jump="fleet" aria-label="Open ${esc(unit.driver)} on ${esc(unit.id)}">
+          <span class="who">${esc(unit.driver)}</span>
+          <span class="num">${esc(unit.id)}</span>
+          <span>${statusHtml(unit.status)}</span>
+          <span class="col-hours">${esc(unit.hours)}</span>
+          <span class="col-phone num">${esc(unit.phone)}</span>
+        </button>
+      </li>`).join("");
+
+    document.getElementById("view-drivers").innerHTML = `
+      <section class="sheet paper">
+        <p class="lede">Ten drivers on the Wednesday board. Open a name to land on that unit.</p>
+        <ul class="ledger">${driverRows}</ul>
+      </section>`;
+
+    const due = maintenance.filter((item) => item.due);
+    const later = maintenance.filter((item) => !item.due);
+    const maintRow = (item) => `
+      <li>
+        <button type="button" class="maint-row" data-select="${esc(item.id)}" data-jump="fleet" aria-label="Open ${esc(item.id)}, ${esc(item.item)}">
+          <span class="who num">${esc(item.id)}</span>
+          <span class="status"><span class="dot ${esc(item.tone)}" aria-hidden="true"></span>${esc(item.item)}</span>
+          <span class="num">${esc(item.when)}</span>
+          <span class="col-note sub">${esc(item.note)}</span>
+        </button>
+      </li>`;
+
+    document.getElementById("view-maintenance").innerHTML = `
+      <section class="sheet paper">
+        <p class="lede">Three jobs due this week. Bay 2 is occupied by HP-073.</p>
+        <h2 class="sheet-label">Due this week</h2>
+        <ul class="ledger">${due.map(maintRow).join("")}</ul>
+        <h2 class="sheet-label">On the clock, not due</h2>
+        <ul class="ledger">${later.map(maintRow).join("")}</ul>
+      </section>`;
+
+    const accountRows = accounts.map((account) => {
+      const ids = units.filter((unit) => unit.account === account.name).map((unit) => unit.id).join(", ");
+      return `
+        <li>
+          <button type="button" class="account-row" data-account="${esc(account.name)}" aria-label="Show ${esc(account.name)} on the fleet board">
+            <span class="who">${esc(account.name)}<span class="kind">${esc(account.kind)}</span></span>
+            <span>${esc(account.contact)}<span class="kind">${esc(account.role)}</span></span>
+            <span class="num">${esc(ids)}</span>
+            <span class="col-work">${esc(account.work)}</span>
+          </button>
+        </li>`;
+    }).join("");
+
+    document.getElementById("view-accounts").innerHTML = `
+      <section class="sheet paper">
+        <p class="lede">Four open accounts on this corridor. Choose one to filter the fleet.</p>
+        <ul class="ledger">${accountRows}</ul>
+      </section>`;
+
+    const atYard = yardOrder.map((id) => units.find((unit) => unit.id === id));
+    const legs = [
+      {
+        name: "Oakland yard",
+        note: "Depart window 04:00–08:00. Dock 1 and dock 4 are live. Shop is bay 2.",
+        items: atYard
+      },
+      {
+        name: "Oakland → Stockton",
+        note: "Cross-dock at Stockton. Dwell target 40 minutes.",
+        items: units.filter((unit) => unit.status === "route" && unit.progress < 0.34)
+      },
+      {
+        name: "Stockton → Fresno",
+        note: "Cold drop and lumber gate B. Through freight does not unload.",
+        items: units.filter((unit) => unit.status === "route" && unit.progress >= 0.34 && unit.progress < 0.67)
+      },
+      {
+        name: "Fresno → Bakersfield",
+        note: "Terminus for greens and the dairy reefer.",
+        items: units.filter((unit) => unit.status === "route" && unit.progress >= 0.67)
+      }
+    ];
+
+    document.getElementById("view-routes").innerHTML = `
+      <section class="sheet paper">
+        <p class="lede">North corridor, eastbound. Units sit on the leg they are running now.</p>
+        <ol class="stations">
+          ${legs.map((leg) => `
+            <li>
+              <h3>${esc(leg.name)}</h3>
+              <p class="station-note">${esc(leg.note)}</p>
+              <div class="chips">${leg.items.map(chip).join("")}</div>
+            </li>`).join("")}
+        </ol>
+        <p class="closing">Westbound empties open as a separate board at 16:00.</p>
+      </section>`;
+
+    const reportLines = [
+      ["Late drops", "2 · both Monday, Grapevine wind hold"],
+      ["Temp alarms", "1 · cleared Tuesday on HP-091"],
+      ["Stockton dwell", "Median 41 min · target 40"],
+      ["Miles", "12,480 week to date"],
+      ["Fuel", "$18,640 week to date"]
+    ];
+
+    document.getElementById("view-reports").innerHTML = `
+      <section class="sheet paper">
+        <p class="lede">Harbor &amp; Pine, week of 21 Sep, counted through this morning.</p>
+        <div class="report-hero">
+          <p class="report-figure">94%</p>
+          <p class="report-caption">On-time this week. 47 of 50 drops landed inside the window.</p>
+        </div>
+        <h2 class="sr-only">Week figures</h2>
+        <ul class="ledger">
+          ${reportLines.map(([label, value]) => `
+            <li>
+              <div class="static-row report-row">
+                <span class="who">${esc(label)}</span>
+                <span>${esc(value)}</span>
+              </div>
+            </li>`).join("")}
+        </ul>
+      </section>`;
+  }
+
+  function openAccount(name) {
+    state.query = name;
+    state.filter = "all";
+    input.value = name;
+    clearBtn.hidden = false;
+    syncFilters();
+    const first = units.find((unit) => unit.account === name);
+    if (first) state.selectedId = first.id;
+    setView("fleet");
+    renderList();
+    updateSelection();
+    renderDetail();
+    announce(`Fleet filtered to ${name}.`);
+  }
+
+  function bind() {
+    document.body.addEventListener("click", (event) => {
+      const accountBtn = event.target.closest("[data-account]");
+      if (accountBtn) {
+        openAccount(accountBtn.dataset.account);
+        return;
+      }
+
+      const selectBtn = event.target.closest("[data-select]");
+      if (selectBtn) {
+        if (selectBtn.dataset.jump === "fleet") setView("fleet");
+        select(selectBtn.dataset.select, true);
+        return;
+      }
+
+      const filterBtn = event.target.closest("[data-filter]");
+      if (filterBtn) {
+        setFilter(filterBtn.dataset.filter);
+        return;
+      }
+
+      const navBtn = event.target.closest("[data-view]");
+      if (navBtn) {
+        setView(navBtn.dataset.view);
+        return;
+      }
+
+      const action = event.target.closest("[data-action]");
+      if (!action) return;
+      if (action.dataset.action === "checkin") logCheckin();
+      if (action.dataset.action === "clear") clearSearch();
+      if (action.dataset.action === "show-selected") showSelected();
+    });
+
+    document.querySelector(".search").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const first = listEl.querySelector(".unit-row");
+      if (!first) return;
+      if (state.view !== "fleet") setView("fleet");
+      select(first.dataset.select, true);
+      first.focus();
+    });
+
+    input.addEventListener("input", () => {
+      state.query = input.value;
+      clearBtn.hidden = !input.value;
+      if (state.view !== "fleet" && input.value.trim()) setView("fleet");
+      renderList();
+      updateSelection();
+    });
+
+    document.querySelector(".filters").addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+      const buttons = [...document.querySelectorAll("[data-filter]")];
+      const index = buttons.indexOf(document.activeElement);
+      if (index < 0) return;
+      event.preventDefault();
+      const next = buttons[(index + (event.key === "ArrowRight" ? 1 : -1) + buttons.length) % buttons.length];
+      next.focus();
+      setFilter(next.dataset.filter);
+    });
+
+    listEl.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+      const rows = [...listEl.querySelectorAll(".unit-row")];
+      const index = rows.indexOf(document.activeElement);
+      if (index < 0) return;
+      const next = rows[index + (event.key === "ArrowDown" ? 1 : -1)];
+      if (!next) return;
+      event.preventDefault();
+      next.focus();
+      select(next.dataset.select, true);
+    });
+  }
+
+  document.querySelectorAll("[data-count]").forEach((el) => {
+    el.textContent = String(countStatus(el.dataset.count));
+  });
+
+  renderYard();
+  renderKpis();
+  renderRibbon();
+  renderSecondary();
+  renderList();
+  renderDetail();
+  updateSelection();
+  bind();
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const corridor = document.getElementById("corridor");
+      if (corridor) corridor.classList.add("is-ready");
+    });
+  });
+})();
+</script>
+</body>
+</html>
